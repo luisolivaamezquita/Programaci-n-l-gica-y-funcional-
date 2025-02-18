@@ -1,0 +1,13 @@
+import findspark
+findspark.init()
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col,avg,year,sum,to_timestamp,trim,regexp_replace
+
+spark = SparkSession.builder.appName("ColabSpark").getOrCreate()
+df = spark.read.csv("/content/Viagogo.csv", header=True, inferSchema=True)
+df.show(5)  # Muestra las primeras 5 filas
+
+df=df.withColumn("TransactionDateTime",regexp_replace(col("TransactionDateTime"),"a. m.| p. m.",""))
+df=df.withColumn("TransactionDateTime",to_timestamp(trim(col("TransactionDateTime")),"dd/MM/yyyy HH:mm:ss"))
+suma2025=df.filter(year(df.TransactionDateTime)==2025).agg(sum(col("TotalSellerNetProceeds"))).collect()[0][0]
+print(suma2025)
